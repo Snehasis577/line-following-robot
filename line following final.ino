@@ -1,6 +1,5 @@
 #include <Servo.h>
-bool f = 0;
-int th=40;
+
 Servo myservo;
 //ldr pins
 byte ldr = 25;
@@ -24,9 +23,11 @@ byte ra = 2, rd = 3, la = 4, ld = 5, pr1 = 7, pr2 = 6;
 float sv[7], ps[7];
 int nexmin = 100;
 int nexmax = 100;
-byte ser_max=180,ser_min=90;
+byte ser_max = 180, ser_min = 90;
 byte ud = 0, jwidth = 4;
 int  ua = 0;
+bool f = 0;
+int th = 40;
 
 //SPEED VARIABLE..............
 float speed_max = 220; //MAX SPEED OF MOTTORS
@@ -99,7 +100,7 @@ void pid_calculate()//function to calculate pid values
 }
 void leftturn(int x) //function for turn left
 {
-  
+
   while (sv[0] == 0) {
     read_nex();
     analogWrite(ra, turn_speed);
@@ -188,13 +189,13 @@ void read_nex()// function to read the nex line sensor
   sum = 0;
   for (int j = 0; j < 7; j++)
   {
-  //  sv[j] = !digitalRead(nex[j]) * (1023 - analogRead(nex[j]));   // for black background
-      sv[j] = digitalRead(nex[j]) * (analogRead(nex[j]));   //for white background
-      Serial.print(sv[j]);
-      Serial.print("    ");
-      sv[j] = map(sv[j],nexmin, nexmax, 0, 10);// map sensor value to 0-10
-      Serial.print(sv[j]);
-      // calculate weighted sum and  average value
+    //  sv[j] = !digitalRead(nex[j]) * (1023 - analogRead(nex[j]));   // for black background
+    sv[j] = digitalRead(nex[j]) * (analogRead(nex[j]));   //for white background
+    Serial.print(sv[j]);
+    Serial.print("    ");
+    sv[j] = map(sv[j], nexmin, nexmax, 0, 10); // map sensor value to 0-10
+    Serial.print(sv[j]);
+    // calculate weighted sum and  average value
     if (sv[j] >= 1)
     {
       son++;
@@ -209,7 +210,7 @@ void read_nex()// function to read the nex line sensor
 }
 void print_nex()// function to print sensor value to serial monitor and store the current sensor value in ps[]
 {
-   for (int j = 0; j < 7; j++)
+  for (int j = 0; j < 7; j++)
   {
     ps[j] = sv[j];
     Serial.print(sv[j]);
@@ -220,7 +221,7 @@ void print_nex()// function to print sensor value to serial monitor and store th
 
 void ultra_read()// function to read ultrasonic sensor
 {
-  
+
   ud = digitalRead(dus);
   ua = analogRead(aus);
 }
@@ -241,7 +242,7 @@ void caliberate()// function for automatic caliberation of line sensor
     }
   }
   Serial.println(nexmax);
-   Serial.println(nexmin);
+  Serial.println(nexmin);
   digitalWrite(led[0], 0);
 
 
@@ -253,8 +254,8 @@ void loop() {
   read_nex();
   ultra_read();    //  pid_calculate();
   motion();
-  if(ua<=33)
-  door();
+  if (ua <= 33)
+    door();
   // if all sensors have 0 value
   if (son == 0 )
   {
@@ -263,7 +264,7 @@ void loop() {
     Serial.println(dir);
     digitalWrite(led[2], LOW);
     // go back if bot gets out of line go back to find the line
-    while (sv[6] == 0 && sv[5] == 0 && sv[4] == 0 &&sv[3] == 0 && sv[2] == 0 && sv[1] == 0 && sv[0] == 0 )
+    while (sv[6] == 0 && sv[5] == 0 && sv[4] == 0 && sv[3] == 0 && sv[2] == 0 && sv[1] == 0 && sv[0] == 0 )
     { read_nex();
       back(1);
     }
@@ -272,7 +273,6 @@ void loop() {
   else if (son >= jwidth)// if junction detected
   {
     read_nex();
-    //  read_nex();
     print_nex();
 
     dir = 1;
@@ -286,7 +286,6 @@ void loop() {
 
     read_nex();
 
-    // read_nex();
     if (son >= 1)
     { dir = 3;
     }
@@ -341,40 +340,27 @@ void loop() {
       digitalWrite(led[1], 0);
 
     }
-    //        stoppe();
-    //        while (1)
-    //        {
-    //          print_nex();
-    //          // stoppe();
-    //        }
-    //
-    //      }
+
   }
   else
   {
     pid_calculate();
     motion();
   }
-  //Serial.println("");
-  //for (int j=0;j<7;j++)
-  //  {sv[j]=analogRead(nex[j]);
-  //   value = map(sv[j], 0, 255, 0, 10);
-  //Serial.print(value);
-  //Serial.print("    ");}
-  //Serial.println("");
+
 
 
 }
 //###############################END OF LOOP #########################################
 void start()
 {
-  f = digitalRead(23);
+  f = digitalRead(23);// switch connected to pin 23 while on caliberate the sensors
 
   for (pos = ser_max; pos >= ser_min; pos--)
-    {
-      myservo.write(pos);
-      delay(15);
-    }
+  {
+    myservo.write(pos);
+    delay(15);
+  }
   while (f)
 
   { Serial.write("caliberating sensors");
@@ -382,13 +368,13 @@ void start()
     Serial.println(analogRead(aus));
 
 
-    if (analogRead(aus) <=th)
-    {Serial.println(analogRead(aus));
+    if (analogRead(aus) <= th)
+    { Serial.println(analogRead(aus));
       digitalWrite(led[0], HIGH);
     }
     else
       digitalWrite(led[0], 0);
-      
+
     if (digitalRead(ldr) == 1)
       digitalWrite(led[1], HIGH);
     else
@@ -400,33 +386,32 @@ void start()
     delay(15);
   }
 
-  
-  
+
+
 }
-void door()
+void door()// function open the door and extinguish candel
 {
   stopp();
-  for (pos =ser_max; pos >= ser_min; pos--)
-    {
-      myservo.write(pos);
-      delay(15);
-    }
-   while(1)
-   Serial.println("door found");
-//  if(digitalRead(ldr) == 1)
-//  {
-//    while(digitalRead(ldr) == 1)
-//    digitalWrite(27,HIGH);
-//  }
-//digitalWrite(27,LOW);
-// for (pos = 110; pos <= 180; pos++)
-//    {
-//      myservo.write(pos);
-//      delay(15);
-//    }
-  
-}
+  for (pos = ser_max; pos >= ser_min; pos--)
+  {
+    myservo.write(pos);
+    delay(15);
+  }
+  while (1)
+    Serial.println("door found");
+  if (digitalRead(ldr) == 1)
+  {
+    while (digitalRead(ldr) == 1)
+      digitalWrite(27, HIGH);
+  }
+  digitalWrite(27, LOW);
+  for (pos = 110; pos <= 180; pos++)
+  {
+    myservo.write(pos);
+    delay(15);
+  }
 
+}
 
 
 
